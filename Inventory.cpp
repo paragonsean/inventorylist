@@ -40,45 +40,36 @@ Inventory::Inventory(int n)
 }
 
 //------------------------------------------------------------------------------
-Inventory::Inventory(const Inventory &src)
-    :Inventory(src.slots)
-{
-    for (Node* it = src.head; it!= nullptr; it = it->next) {
-        this->addItemStackNoCheck(it->data);
+Inventory::Inventory(const Inventory &src) {
+    this->head = nullptr;
+    this->tail = nullptr;
+    this->slots = src.slots;
+    this->occupied = src.occupied;
+    Node* srcNode = src.head;
+    while (srcNode != nullptr) {
+        this->addItemStackNoCheck(srcNode->data);
+        srcNode = srcNode->next;
     }
-
-    /*
-    Node* srcIt = src.head;
-
-    while (srcIt != nullptr) {
-        this->addItemStackNoCheck(srcIt->data);
-
-        srcIt = srcIt->next;
-    }
-    */
 }
+
 
 //------------------------------------------------------------------------------
-Inventory::~Inventory()
-{
-    Node* it = head;
-
-    while(it!= nullptr){
-        Node* next = it->next;
-        delete it;
-
-        it = next;
+Inventory::~Inventory() {
+    Node* current = head;
+    while (current != nullptr) {
+        Node* next = current->next;
+        delete current;
+        current = next;
     }
+    head = tail = nullptr;
 }
+
 
 //------------------------------------------------------------------------------
-bool Inventory::isFull() const
-{
-    // If this is more than one line
-    // in the form "return (boolean expression);"
-    // you are overthinking the problem
-    return (occupied == slots);
+bool Inventory::isFull() const {
+    return occupied == slots;
 }
+
 
 //------------------------------------------------------------------------------
 void Inventory::display(std::ostream &outs) const
@@ -86,7 +77,7 @@ void Inventory::display(std::ostream &outs) const
     outs << " -Used " << occupied << " of " << slots << " slots" << "\n";
 
     Node* it = head;
-    while (it != nullptr) {
+    while(it != nullptr){
         outs << "  " << it->data << "\n";
 
         it = it->next;
@@ -112,28 +103,34 @@ void swap(Inventory& lhs, Inventory& rhs)
 }
 
 //------------------------------------------------------------------------------
-Inventory::Node* Inventory::findMatchingItemStackNode(const ItemStack& itemStack)
-{
-    Node* it = head;
-
-    while (it != nullptr) {
-        if ((it->data) == itemStack) {
-            return it;
-        }
-
-        it = it->next;
+Inventory::Node* Inventory::findMatchingItemStackNode(const ItemStack& itemStack) {
+    Node* current = head;
+    while (current != nullptr) {
+        if (current->data == itemStack) return current;
+        current = current->next;
     }
-
     return nullptr;
 }
 
 //------------------------------------------------------------------------------
-void Inventory::mergeStacks(ItemStack& lhs, const ItemStack& rhs)
-{
-    lhs.addItems(rhs.size());
+void Inventory::mergeStacks(ItemStack& lhs, const ItemStack& rhs) {
+    int totalQuantity = lhs.size() + rhs.size(); // Calculate total quantity
+    int quantityToAdd = totalQuantity - lhs.size(); // Determine additional quantity needed
+    lhs.addItems(quantityToAdd); // Adjust lhs quantity to the total
 }
 
 //------------------------------------------------------------------------------
+void Inventory::addItemStackNoCheck(ItemStack itemStack) {
+    Node* newNode = new Node(itemStack);
+    if (head == nullptr) {
+        head = tail = newNode;
+    } else {
+        tail->next = newNode;
+        tail = newNode;
+    }
+    ++occupied; // Assuming 'occupied' tracks the number of stacks, not individual items
+}
+
 void Inventory::addItemStackNoCheck(ItemStack itemStack)
 {
     if (head == nullptr) {
