@@ -1,0 +1,30 @@
+name: C++ Build and Run
+
+on: [push, pull_request]
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up G++ and GNU Make
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y g++ make automake
+        g++ --version
+        automake --version
+        make --version
+
+    - name: Compile C++ Code
+      run: make
+
+    - name: Run Executable and Capture Output
+      run: ./storage itemList-01.txt inventoryList-01.txt >> output.txt
+
+    - name: Upload Output Log
+      uses: actions/upload-artifact@v2
+      with:
+        name: output-log
+        path: output.txt
